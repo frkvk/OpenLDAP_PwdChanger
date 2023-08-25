@@ -56,7 +56,7 @@ class LDAPClientApp:
         label_null2 = Label(self.frame1, text=" ")
         label_null2.grid(row=80, column=1, padx=4)
 
-        button_changepwd = Button(self.frame1, text="Cambiar Contraseña", command=self.change_password)
+        button_changepwd = Button(self.frame1, text="Change Password", command=self.change_password)
         button_changepwd.grid(row=61, column=1, padx=1)
 
 
