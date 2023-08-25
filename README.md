@@ -14,7 +14,11 @@ The steps to create an .exe are as follows:
     Open a cmd terminal.
 
 First, open a cmd terminal with administrator privileges and execute the following commands (if you want to add an icon to the program):
-pyinstaller --add-data "icon.ico;dist\icon.ico" -i "icon.ico" LDAP_PwdChanger.py
-pyinstaller -F -w -i "icon.ico" LDAP_PwdChanger.py
+- pyinstaller --add-data "icon.ico;dist\icon.ico" -i "icon.ico" LDAP_PwdChanger.py
+- pyinstaller -F -w -i "icon.ico" LDAP_PwdChanger.py
 
+If you dont want to have an icon in the program:
+- pyinstaller LDAP_PwdChanger.py
+- pyinstaller -F -w LDAP_PwdChanger.py
+  
 Finally, within the "Dist" folder, there will be an .exe file that can be distributed to users. You can delete the remaining folders and keep the .py and .exe files.
