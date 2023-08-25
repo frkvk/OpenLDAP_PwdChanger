@@ -24,5 +24,6 @@ If you dont want to have an icon in the program:
 Finally, within the "Dist" folder, there will be an .exe file that can be distributed to users. You can delete the remaining folders and keep the .py and .exe files.
 
 Preview:
+
 ![imagen](https://github.com/frkvk/OpenLDAP_PwdChanger/assets/117442111/e5f1c54e-43f9-456e-9061-6e0c7a9f2347)
 
