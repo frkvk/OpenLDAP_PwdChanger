@@ -2,6 +2,7 @@
 A program to let users change the OpenLDAP password inside our organization
 
 The purpose of this program is to create an .exe to provide members of our organization with the ability to regularly change their LDAP passwords.
+It's important to know that this program works with OpenLDAP's ppolicy, adhering to the complexity requirements set by the server, historical checks, and passwords stored in SSHA format.
 
 Currently, the program only allows insecure LDAP connections, and support for LDAPS will be added in the near future. It is recommended to use the program externally with a VPN or within a trusted network.
 
