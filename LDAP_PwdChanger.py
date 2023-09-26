@@ -2,6 +2,7 @@ import socket
 from ldap3 import Server, Connection, MODIFY_REPLACE
 from tkinter import messagebox as MessageBox
 from tkinter import StringVar, Frame, Label, Button, Entry, Tk
+from ldap3.core.exceptions import LDAPStartTLSError
 
 
 class LDAPClientApp:
@@ -76,9 +77,15 @@ class LDAPClientApp:
             if (conn.result and conn.result['result'] != 0):
                 MessageBox.showerror("Authentication Fail", f"Please check your password and try again.")
                 return False
-            conn.start_tls()
+            if use_ssl:
+                conn.start_tls()
             if conn.bind():
-                print(f"LDAP STARTTLS {port}")
+                if use_ssl:
+                    print(f"Protocol LDAP STARTTLS {port}")
+                elif "ldaps" in ldap_uri:
+                    print(f"Protocol LDAPS {port}")
+                else:
+                    print(f"Protocol LDAP {port}")
                 return conn
             elif conn.result['result'] == 49:
                 MessageBox.showerror("Authentication Fail", f"Please check your username & password and try again.")
@@ -88,6 +95,8 @@ class LDAPClientApp:
         except (socket.timeout, socket.error):
             pass
         except (TypeError, AttributeError):
+            pass
+        except LDAPStartTLSError:
             pass
 
 
