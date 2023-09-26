@@ -1,19 +1,27 @@
 import socket
-from ldap3 import Server, Connection, MODIFY_REPLACE, ALL
-from tkinter import *
+from ldap3 import Server, Connection, MODIFY_REPLACE
 from tkinter import messagebox as MessageBox
+from tkinter import StringVar, Frame, Label, Button, Entry, Tk
+
 
 class LDAPClientApp:
     def __init__(self, root):
         # Program created by: https://github.com/frkvk/
         # Any issues contact with me.
+        # Here you have the variables to edit
+        self.ldap_ip = 'LDAP IP'
+        self.organizational_unit = 'ou=employes,dc=domain,dc=local' #Excluding the "uid=X"
+        # for example with this text you have uid=user,ou=employes,dc=domain,dc=local
+
+
         self.root = root
-        self.root.title("OpenLDAP-Client")
+        self.root.title("OpenLDAP_PwdChanger")
         self.root.geometry("300x260")
         self.root.resizable(0, 0)
+        self.ldap_uri = f'ldap://{self.ldap_ip}'   #Change that variable before compile .exe
+        self.ldaps_uri = f'ldaps://{self.ldap_ip}'
         
-        self.ldap_uri = 'ldap://IP:PORT'   #Change that variable before compile .exe
-        
+
         self.struser = StringVar()
         self.strpass = StringVar()
         self.strnewpass = StringVar()
@@ -47,8 +55,8 @@ class LDAPClientApp:
         button_check = Button(self.frame1, text="Check Connection", command=self.verify_password)
         button_check.grid(row=50, column=1)
 
-        label_check = Label(self.frame1)
-        label_check.grid(row=52, column=1, padx=4)
+        self.label_check = Label(self.frame1)
+        self.label_check.grid(row=52, column=1, padx=4)
 
         label_null1 = Label(self.frame1, text="")
         label_null1.grid(row=53, column=1, padx=4)
@@ -60,49 +68,85 @@ class LDAPClientApp:
         button_changepwd.grid(row=61, column=1, padx=1)
 
 
+
+    def starttlstry(self, user, passw, ldap_uri, port, use_ssl):
+        try:
+            server = Server(ldap_uri, port=port, use_ssl=use_ssl, connect_timeout=3)
+            conn = Connection(server, user=f'uid={user},{self.organizational_unit}', password=f'{passw}')
+            if (conn.result and conn.result['result'] != 0):
+                MessageBox.showerror("Authentication Fail", f"Please check your password and try again.")
+                return False
+            conn.start_tls()
+            if conn.bind():
+                print(f"LDAP STARTTLS {port}")
+                return conn
+            elif conn.result['result'] == 49:
+                MessageBox.showerror("Authentication Fail", f"Please check your username & password and try again.")
+            else:
+                print(conn.result['result'])
+                return False
+        except (socket.timeout, socket.error):
+            pass
+        except (TypeError, AttributeError):
+            pass
+
+
+    def create_ldap_connection(self, user, passw):
+        # # START_TLS 389
+        conn = self.starttlstry(user, passw, self.ldap_uri, 389, True)
+        if conn: 
+            return conn
+
+        # START_TLS 636
+        conn = self.starttlstry(user, passw, self.ldap_uri, 636, True)
+        if conn: 
+            return conn
+
+        # # LDAPS 636
+        conn = self.starttlstry(user, passw, self.ldaps_uri, 636, False)
+        if conn: 
+            return conn
+
+        # # LDAP 389
+        conn = self.starttlstry(user, passw, self.ldap_uri, 389, False)
+        if conn: 
+            return conn
+
+
+
     def verify_password(self):
-        dn_user = f'uid={self.struser.get()},ou=employers,dc=example,dc=local' #Change that variable before compile .exe
+        user = self.struser.get()
         passw = self.strpass.get()
-        server = Server(self.ldap_uri)
-
-        conn = Connection(server, dn_user, passw)
-
-        old_timeout = socket.getdefaulttimeout()
-        socket.setdefaulttimeout(6)
 
         try:
-            if conn.bind():
+            conn = self.create_ldap_connection(user, passw)
+            if (conn and conn.bind()):
                 self.label_check.config(text="Connected")
-                conn.unbind()        
-            else:
-                self.label_check.config(text="Connection failed")
-                MessageBox.showerror("Connection error", "Connection error with OpenLDAP")
                 conn.unbind()
-        except socket.timeout:
-            MessageBox.showerror("Connection timeout", "Request timeout against the OpenLDAP server has elapsed.")
+        except socket.error as socket_err:
+            error_message = str(socket_err)
+            if "WinError 10061" in error_message:
+                error_message = "Connection was refused by the LDAP server. Check the server's availability and configuration."
+            print("Socket Error:", error_message)
+
         except Exception as e:
             print("Error:", e)
-            MessageBox.showerror("Unkown Error", f"Unkown Error,: \n {e} \n Please contact with an Administrator.")
-        finally:
-            socket.setdefaulttimeout(old_timeout)
+            self.label_check.config(text="Connection failed")
+            MessageBox.showerror("Unknown Error", f"Unknown Error: \n {e} \n Please contact an Administrator.")
+
 
 
     def change_password(self):
-        dn_user = f'uid={self.struser.get()},ou=employers,dc=example,dc=local' #Change that variable before compile .exe
+        user = self.struser.get()
         passw = self.strpass.get()
         newpas = self.strnewpass.get()
-        server = Server(self.ldap_uri, get_info=ALL)
-
-        conn = Connection(server, dn_user, passw)
-        old_timeout = socket.getdefaulttimeout()
-        socket.setdefaulttimeout(6)
-
         try:
-            if conn.bind():
-                result = conn.extend.standard.modify_password(dn_user, passw, newpas)
+            conn = self.create_ldap_connection(user, passw)
+            if (conn and conn.bind()):
+                result = conn.extend.standard.modify_password(f'uid={user},{self.organizational_unit}', passw, newpas)
                 
                 if result:
-                    print("Password changed succesfully")
+                    print("Password changed successfully")
                     MessageBox.showinfo("Password changed", "The password has been changed successfully.")
                 else:
                     response = conn.result
@@ -114,18 +158,17 @@ class LDAPClientApp:
                     elif "Password fails quality checking policy" in response['message']:
                         MessageBox.showwarning("Error", "The new password does not meet complexity requirements.")
                     else:
-                        print("No se pudo cambiar la contraseña:", response['message'])
+                        print("Password could not be changed:", response['message'])
                         MessageBox.showwarning("Error", f"The password could not be changed: \n {response['message']}")
                 conn.unbind()
-            else:
-                print("Error de autenticación")
-                conn.unbind()
-        except socket.timeout:
-            MessageBox.showerror("Connection timeout", "Request timeout against the OpenLDAP server has elapsed.")
+        except socket.error as socket_err:
+            error_message = str(socket_err)
+            if "WinError 10061" in error_message:
+                error_message = "Connection was refused by the LDAP server. Check the server's availability and configuration."
+            print("Socket Error:", error_message)
         except Exception as e:
-            MessageBox.showerror("Unkown Error", f"Unkown Error,: \n {e} \n Please contact with an Administrator.")
-        finally:
-            socket.setdefaulttimeout(old_timeout)
+            MessageBox.showerror("Unknown Error", f"Unknown Error: \n {e} \n Please contact an Administrator.")
+
 
 
 def main():
@@ -135,3 +178,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
