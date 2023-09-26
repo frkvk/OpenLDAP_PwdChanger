@@ -6,7 +6,7 @@ It's important to know that this program works with OpenLDAP's ppolicy, adhering
 
 Currently, the program only allows insecure LDAP connections, and support for LDAPS will be added in the near future. It is recommended to use the program externally with a VPN or within a trusted network.
 
-The program can be compiled into an .exe file with included dependencies, but prior to this, it's necessary to modify lines 15, 64, and 91 (LDAP variables).
+The program can be compiled into an .exe file with included dependencies, but prior to this, it's necessary to modify lines 22 & 23 (LDAP variables).
 
 The steps to create an .exe are as follows:
 
