@@ -26,6 +26,11 @@ Finally, within the "Dist" folder, there will be an .exe file that can be distri
 
 Preview:
 
+If you have problem with the antivirus, u need to follow this manual:
+https://plainenglish.io/blog/pyinstaller-exe-false-positive-trojan-virus-resolved-b33842bd3184#7-re-build-your-exe-with-pyinstaller-and-make-sure-its-not-being-be-flagged-as-a-virus
+In the step 6.3 if you have python installed from the windows app store, u need to run:
+- pip install .
+
 ![imagen](https://github.com/frkvk/OpenLDAP_PwdChanger/assets/117442111/ac0f560e-c206-42e7-be89-3e393223f0ff)
 
 
