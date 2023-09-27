@@ -70,7 +70,7 @@ class LDAPClientApp:
 
 
 
-    def starttlstry(self, user, passw, ldap_uri, port, use_ssl):
+    def connectionttry(self, user, passw, ldap_uri, port, use_ssl):
         try:
             server = Server(ldap_uri, port=port, use_ssl=use_ssl, connect_timeout=3)
             conn = Connection(server, user=f'uid={user},{self.organizational_unit}', password=f'{passw}')
@@ -102,22 +102,22 @@ class LDAPClientApp:
 
     def create_ldap_connection(self, user, passw):
         # # START_TLS 389
-        conn = self.starttlstry(user, passw, self.ldap_uri, 389, True)
+        conn = self.connectionttry(user, passw, self.ldap_uri, 389, True)
         if conn: 
             return conn
 
         # START_TLS 636
-        conn = self.starttlstry(user, passw, self.ldap_uri, 636, True)
+        conn = self.connectionttry(user, passw, self.ldap_uri, 636, True)
         if conn: 
             return conn
 
         # # LDAPS 636
-        conn = self.starttlstry(user, passw, self.ldaps_uri, 636, False)
+        conn = self.connectionttry(user, passw, self.ldaps_uri, 636, False)
         if conn: 
             return conn
 
         # # LDAP 389
-        conn = self.starttlstry(user, passw, self.ldap_uri, 389, False)
+        conn = self.connectionttry(user, passw, self.ldap_uri, 389, False)
         if conn: 
             return conn
 
